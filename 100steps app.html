@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>100steps</title>
+<style>
+:root{--bg:#0b1020;--card:#151a3c;--card2:#1d2350;--ink:#f1f3ff;--mute:#9aa3d0;--amber:#f7b83d;--teal:#2ec4b6;--red:#ff6b6b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;justify-content:center}
+body.large{font-size:18px}
+#app{width:100%;max-width:440px;min-height:100vh;padding:18px 16px 90px}
+h1,h2{font-family:Georgia,"Times New Roman",serif;margin:2px 0 12px}
+h1{font-size:28px}h2{font-size:20px;margin-top:20px}
+small,.mute{color:var(--mute);font-size:12px}
+.card{background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.big{display:block;width:100%;text-align:left;border:0;border-radius:16px;padding:16px;margin-bottom:12px;font:inherit;cursor:pointer;color:#0b1020}
+.big b{display:block;font-size:19px}.amber{background:var(--amber)}.teal{background:var(--teal)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pill{font-size:11px;font-weight:700;border-radius:99px;padding:3px 9px;color:#0b1020;background:var(--amber)}
+.pill.t{background:var(--teal)}.pill.r{background:var(--red)}
+.chips{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.chip{border:0;border-radius:99px;padding:6px 12px;background:var(--card2);color:var(--ink);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.chip.on{background:var(--amber);color:#0b1020}
+.dots button{width:22px;height:22px;border-radius:50%;border:0;margin-left:4px;background:#2b3166;cursor:pointer}
+.dots button.on{background:var(--amber)}
+.ring{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;background:conic-gradient(var(--c) calc(var(--p)*1%),#2b3166 0)}
+.ring span{width:42px;height:42px;border-radius:50%;background:var(--card);display:grid;place-items:center}
+.btn{border:0;border-radius:99px;padding:8px 14px;font:inherit;font-weight:700;font-size:13px;cursor:pointer;color:#0b1020;background:var(--teal)}
+.btn.a{background:var(--amber)}
+.danger{width:100%;border:0;border-radius:99px;padding:14px;background:var(--red);color:#0b1020;font:inherit;font-weight:700;cursor:pointer;margin-top:10px}
+.msg{padding:10px 12px;border-radius:14px;margin-bottom:8px;max-width:88%}
+.me{background:var(--card2);margin-left:auto}.bot{border:1px solid var(--teal);background:var(--card)}
+.inp{display:flex;gap:8px;margin-top:10px}
+.inp input{flex:1;background:var(--card);border:1px solid #2b3166;border-radius:99px;padding:12px 14px;color:var(--ink);font:inherit}
+.sw{position:relative;width:46px;height:26px;border-radius:99px;border:0;background:#2b3166;cursor:pointer;flex:none}
+.sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}
+.sw.on{background:var(--teal)}.sw.on::after{left:23px}
+nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;display:flex;background:var(--card);padding:10px 6px calc(10px + env(safe-area-inset-bottom,0px));border-radius:18px 18px 0 0}
+nav button{flex:1;border:0;background:none;color:var(--mute);font:inherit;font-size:12px;font-weight:600;cursor:pointer;padding:6px 0}
+nav button.on{color:var(--amber);font-weight:800}
+button:focus-visible,input:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+#toast{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--teal);color:#0b1020;font-weight:700;padding:8px 16px;border-radius:99px;display:none;z-index:5}
+#cover{display:none;position:fixed;inset:0;background:#f4f6f8;color:#333;z-index:9;padding:40px;font-family:system-ui,sans-serif}
+#cover b{font-size:44px;display:block}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="cover"><b>31°C</b>Chennai · Partly cloudy<br><br><small>Tap anywhere to return</small></div>
+<div id="app"></div>
+<nav id="nav"></nav>
+<script>
+const $=s=>document.querySelector(s);
+const tabs=["Home","Audit","Fixes","Help","Safety"];
+const S={tab:0,time:"Dusk",audits:1,rate:{Lighting:2,Sightlines:3,Activity:1,Surface:4,"Waiting spot":2},
+ chat:[],set:{disguise:true,exit:true,nostore:true,voice:true,large:false}};
+try{const o=JSON.parse(localStorage.getItem("s100")||"null");if(o){S.set=o.set||S.set;S.audits=o.audits||1}}catch(e){}
+function save(){try{localStorage.setItem("s100",JSON.stringify({set:S.set,audits:S.audits}))}catch(e){}}
+const places=[["Station underpass","Street lighting dept",9,"On time","","#f7b83d"],["Market lane","Ward office",21,"Due today","t","#2ec4b6"],["Bus stop 4","Transport authority",30,"Escalated","r","#ff6b6b"]];
+const KB=[
+ [/touch|manager|harass|boss|office|work/,"I am sorry this is happening. You have options:\n1. Write down dates and what happened\n2. Report to the internal committee or the police","Country Pack, reviewed by a legal partner"],
+ [/dark|light|bus stop|underpass|road|footpath|unsafe place/,"You can report this place. It goes to the Fix Desk with a 21-day countdown. Your personal details are not sent.","Fix Desk process"],
+ [/report|complain|fir|police/,"You can report to the police or the internal committee. Write down dates, places and names first. A person can help you with the next step.","Country Pack, reviewed by a legal partner"]];
+const DANGER=/hit|beat|attack|following me|kill|rape|danger|help me now|scared for my life/;
+function toast(t){const e=$("#toast");e.textContent=t;e.style.display="block";clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display="none",2200)}
+function name(){return S.set.disguise?"Notes":"100steps"}
+function render(){
+ document.body.classList.toggle("large",S.set.large);
+ document.title=name();
+ $("#nav").innerHTML=tabs.map((t,i)=>`<button class="${i==S.tab?"on":""}" onclick="go(${i})">${t}</button>`).join("");
+ const v=[home,audit,fixes,help,safety][S.tab]();$("#app").innerHTML=v;
+ if(S.tab==3){const c=$("#log");if(c)c.scrollTop=c.scrollHeight}
+}
+function go(i){S.tab=i;render();scrollTo(0,0)}
+function home(){return `<small>Good evening</small><h1>${name()}</h1>
+<div class="card" style="height:90px;background:linear-gradient(135deg,#17306b,#0f1d4a)"><small>Your area: 3 stretches watched</small></div>
+<button class="big amber" onclick="go(1)"><b>Audit a stretch</b><small style="color:#3b3000">4 min, works offline</small></button>
+<button class="big teal" onclick="go(3)"><b>Ask RightsLine</b><small style="color:#04403a">Rights and help, any phone</small></button>
+<h2>Near you</h2>`+places.map((p,i)=>`<div class="card row" onclick="go(2)"><span>${p[0]}</span><span class="pill ${p[4]}">${["Due 12d","Fixed","No reply"][i]}</span></div>`).join("")}
+function audit(){return `<small>Stretch 14</small><h1>Station underpass</h1>
+<div class="chips">${["Morn","Day","Dusk","Night"].map(t=>`<button class="chip ${S.time==t?"on":""}" onclick="S.time='${t}';render()">${t}</button>`).join("")}</div>`+
+Object.keys(S.rate).map(k=>`<div class="card row"><span>${k}</span><span class="dots">${[1,2,3,4,5].map(n=>`<button aria-label="${k} ${n}" class="${n<=S.rate[k]?"on":""}" onclick="S.rate['${k}']=${n};render()"></button>`).join("")}</span></div>`).join("")+
+`<small>Saved on phone. Syncs later. Places only, never people.</small>
+<button class="big amber" style="text-align:center;margin-top:10px" onclick="submitAudit()"><b>Submit audit (${Math.min(S.audits,3)} of 3)</b></button>`}
+function submitAudit(){S.audits++;save();if(S.audits>3){S.audits=1;toast("3 audits done. Sent to Fix Desk.")}else toast("Audit saved for "+S.time);render()}
+function fixes(){return `<small>Ward scoreboard</small><h1>Fix Clock</h1>`+places.map(p=>{const pct=Math.min(100,p[2]/21*100);return `<div class="card row"><div><b>${p[0]}</b><br><small>${p[1]}</small><br><span class="pill ${p[4]}">${p[3]}</span></div><div class="ring" style="--p:${pct};--c:${p[5]}"><span>${p[2]<=21?p[2]+"/21":p[2]}</span></div></div>`}).join("")+
+`<div class="card" style="text-align:center">Fixed this month: <b style="color:var(--teal)">4 of 11</b></div><small>Late offices go to the next office, then the elected leader, then the public scoreboard. A fix counts as closed only after a re-walk.</small>`}
+function help(){return `<h1>RightsLine</h1><div id="log" style="min-height:300px;max-height:52vh;overflow:auto">`+
+(S.chat.length?"":`<div class="card mute">Ask about your rights or an unsafe place. Answers come only from lawyer-checked facts.</div>`)+
+S.chat.map(m=>`<div class="msg ${m.me?"me":"bot"}">${m.t.replace(/\n/g,"<br>")}${m.src?`<br><small>Source: ${m.src}</small>`:""}</div>`).join("")+`</div>
+<div class="chips" style="margin-top:8px"><button class="btn" onclick="toast('A person will call back at a time you pick.')">Talk to a person</button><button class="btn a" onclick="toast('Showing safe places open late near you.')">Safe place near me</button></div>
+<div class="inp"><input id="q" placeholder="Type or hold to speak" aria-label="Your question" onkeydown="if(event.key=='Enter')ask()"><button class="btn" onclick="ask()">Send</button></div>
+<button class="danger" onclick="sos()">In danger? Get help now</button>`}
+function sos(){S.chat.push({t:"Call 112 now for police and emergency help. Women's helpline: 181. A person has been told first.",src:"Emergency numbers"});render()}
+function ask(){const i=$("#q"),q=i.value.trim();if(!q)return;
+ if(S.set.exit&&q.toLowerCase()=="exit"){i.value="";return quick()}
+ S.chat.push({me:1,t:q});const l=q.toLowerCase();
+ if(DANGER.test(l))sos();else{const k=KB.find(k=>k[0].test(l));
+ S.chat.push(k?{t:k[1],src:k[2]}:{t:"I am not sure. I do not want to guess about your rights. Would you like to talk to a person?"});render()}
+ setTimeout(()=>{const x=$("#q");if(x)x.focus()},0)}
+function quick(){$("#cover").style.display="block";S.chat=[]}
+$("#cover").onclick=()=>{$("#cover").style.display="none";render()};
+function safety(){const rows=[["disguise","Disguise app name"],["exit","Quick-exit word (type \"exit\" in RightsLine)"],["nostore","Store no messages"],["voice","Voice and USSD"],["large","Large text"]];
+ return `<small>Private by design</small><h1>Safety</h1>`+rows.map(r=>`<div class="card row"><span>${r[1]}</span><button class="sw ${S.set[r[0]]?"on":""}" role="switch" aria-checked="${!!S.set[r[0]]}" aria-label="${r[1]}" onclick="S.set['${r[0]}']=!S.set['${r[0]}'];save();render()"></button></div>`).join("")+
+ `<div class="card"><small>Tip: neutral icon and name, no alerts that reveal use. No live tracking. Messages are not kept.</small></div><button class="btn a" onclick="quick()">Quick exit now</button>`}
+render();
+</script>
+</body>
+</html>
